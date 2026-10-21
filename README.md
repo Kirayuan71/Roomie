@@ -46,3 +46,9 @@ Streamlit 入口为 `streamlit_app.py`，通过官方 custom component 服务构
 已通过 TypeScript/生产构建、Vitest（比例分摊、净额、结算、规则解析、轮换），以及 Chromium 浏览器的账单刷新持久化、采购联动、公约三人投票、移动端宽度检查；Streamlit 本地健康检查和组件渲染通过。
 
 后续生产化可加入共享数据库、真实身份认证、服务端投票权限及多端同步。当前演示身份切换仅用于体验，不能视作安全权限系统。
+
+### Streamlit 滚动回归检查
+
+Streamlit custom component 的 iframe 默认 `scrolling="no"`。应用使用固定视口高度的 `.app` 内部滚动区；外层 Streamlit 不滚动，不根据内容高度反复调整 iframe。移动端底栏预留安全间距。
+
+启动 Streamlit 后，可用 Playwright + Chromium 运行 `python tests/scroll_check.py`。通过 `CHROMIUM_PATH` 指定浏览器路径，`ROOMIE_TEST_URL` 指定本地测试站点。此检查覆盖桌面、手机、短屏和横屏的真实滚轮到底，以及长留言板不使 iframe 高度增长。

@@ -12,6 +12,7 @@ function App(){const [state,setState]=useState<State>(()=>{try{const s=JSON.pars
 function notify(s:string){setToast(s);setTimeout(()=>setToast(''),3200)}
 function update(fn:(s:State)=>State,msg='已保存'){setState(s=>{const next=fn(s);try{localStorage.setItem('roomie-v1',JSON.stringify(next))}catch{notify('存储空间不足，当前修改无法持久化')}return next});if(msg)notify(msg)}
 function go(p:string){setPage(p);location.hash=p;setFilter('全部')}
+React.useEffect(()=>{document.querySelector('.app')?.scrollTo(0,0)},[page]);
 React.useEffect(()=>{const f=()=>setPage(location.hash.slice(1)||'home');addEventListener('hashchange',f);return()=>removeEventListener('hashchange',f)},[]);
 React.useEffect(()=>{localStorage.setItem('roomie-v1',JSON.stringify(state))},[]);
 const low=state.items.filter(i=>i.stock<=i.threshold);const pending=state.tasks.filter(t=>!t.done);const bal=balances(state.bills);const monthBills=state.bills.filter(b=>b.date.startsWith(month));const total=monthBills.reduce((s,b)=>s+b.amount,0);
@@ -71,6 +72,8 @@ createRoot(document.getElementById('root')!).render(<App/>);
 if(window.parent!==window){
  const send=(type:string,extra:Record<string,unknown>={})=>window.parent.postMessage({isStreamlitMessage:true,type,...extra},'*');
  send('streamlit:componentReady',{apiVersion:1});
- const resize=()=>{let height=window.screen.height;try{height=window.parent.innerHeight}catch{}send('streamlit:setFrameHeight',{height:Math.max(600,height-5)})};
- new ResizeObserver(resize).observe(document.getElementById('root')!);resize();
+ // The host owns viewport sizing; content changes must never resize the frame.
+ let lastHeight=0;
+ const resize=()=>{const height=window.innerHeight;if(height!==lastHeight){lastHeight=height;send('streamlit:setFrameHeight',{height})}};
+ window.addEventListener('resize',resize);resize();
 }
